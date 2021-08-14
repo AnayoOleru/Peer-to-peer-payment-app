@@ -22,4 +22,4 @@ $ npm run test
 | POST 	 | /user	                | Add user to the app            |
 | POST	 | /user/deposit/:userId    | User deposits money            |
 | POST	 | /user/send/:senderId/:receiverId	| User sends money       |
-| GET    | //user/balance/:userId   | User checks their balance      |
+| GET    | /user/balance/:userId   | User checks their balance      |
