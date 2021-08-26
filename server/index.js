@@ -146,7 +146,7 @@ app.get("/user/balance/:userId", (req, res) => {
 
   return Response(res, {
     status: 200,
-    message: `Your current balance is ${data.amount}`,
+    message: `Your current account balance is ${data.amount}`,
     data,
   });
 });
