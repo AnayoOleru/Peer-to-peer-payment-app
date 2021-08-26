@@ -9,17 +9,33 @@ chai.use(chaiHttp);
 
 let userAId;
 let userBId;
+let userCId;
+let userDId;
 
 // save new users
 describe("/POST /user", () => {
   const userA = {
     username: "User A",
     email: "userA@gmail.com",
+    currency: 'USD'
   };
 
   const userB = {
     username: "User B",
     email: "userB@gmail.com",
+    currency: 'NAIRA'
+  };
+
+  const userC = {
+    username: "User C",
+    email: "userC@gmail.com",
+    currency: 'YEN'
+  };
+
+  const userD = {
+    username: "User D",
+    email: "userD@gmail.com",
+    currency: 'YUAN'
   };
 
   it("should return error if User email is empty", (done) => {
@@ -48,6 +64,22 @@ describe("/POST /user", () => {
         expect(res).to.have.status(403);
         expect(res).to.be.a("object");
         expect(res.body.error).to.be.equal("Username is required");
+        done();
+      });
+  });
+
+  it("should return error if User currency is empty", (done) => {
+    chai
+      .request(app)
+      .post(`/user`)
+      .send({
+        username: "User A",
+        email: "userA@gmail.com",
+      })
+      .end((err, res) => {
+        expect(res).to.have.status(403);
+        expect(res).to.be.a("object");
+        expect(res.body.error).to.be.equal("currency is required");
         done();
       });
   });
@@ -92,16 +124,51 @@ describe("/POST /user", () => {
         done();
       });
   });
+
+  it("should add User C to the app", (done) => {
+    chai
+      .request(app)
+      .post(`/user`)
+      .send(userC)
+      .end((err, res) => {
+        expect(res).to.have.status(201);
+        expect(res).to.be.a("object");
+        userCId = res.body.data.id;
+        done();
+      });
+  });
+
+  it("should add User D to the app", (done) => {
+    chai
+      .request(app)
+      .post(`/user`)
+      .send(userD)
+      .end((err, res) => {
+        expect(res).to.have.status(201);
+        expect(res).to.be.a("object");
+        userDId = res.body.data.id;
+        done();
+      });
+  });
 });
+
 
 // deposit money
 describe("/POST /deposit money", () => {
   const userADeposit = {
-    amount: 10,
+    amount: 1,
   };
 
   const userBDeposit = {
-    amount: 20,
+    amount: 2000,
+  };
+
+  const userCDeposit = {
+    amount: 4000,
+  };
+
+  const userDDeposit = {
+    amount: 200,
   };
 
   it("should return error if userId params is empty", (done) => {
@@ -163,12 +230,40 @@ describe("/POST /deposit money", () => {
         done();
       });
   });
+
+  it("UserC should deposit money", (done) => {
+    chai
+      .request(app)
+      .post(`/user/deposit/${userCId}`)
+      .send(userCDeposit)
+      .end((err, res) => {
+        expect(res).to.have.status(201);
+        expect(res).to.be.a("object");
+        done();
+      });
+  });
+
+  it("UserD should deposit money", (done) => {
+    chai
+      .request(app)
+      .post(`/user/deposit/${userDId}`)
+      .send(userDDeposit)
+      .end((err, res) => {
+        expect(res).to.have.status(201);
+        expect(res).to.be.a("object");
+        done();
+      });
+  });
 });
 
 // send money
 describe("/POST /GET /send money /Check balance", () => {
   const userBSend = {
-    amount: 15,
+    amount: 1000,
+  };
+
+  const userCSend = {
+    amount: 3000,
   };
 
   it("should return error if sender does not exist", (done) => {
@@ -214,7 +309,7 @@ describe("/POST /GET /send money /Check balance", () => {
     chai
       .request(app)
       .post(`/user/send/${userBId}/${userAId}`)
-      .send({ amount: 2000 })
+      .send({ amount: 5000 })
       .end((err, res) => {
         expect(res).to.have.status(403);
         expect(res).to.be.a("object");
@@ -223,7 +318,7 @@ describe("/POST /GET /send money /Check balance", () => {
       });
   });
 
-  it("User B sends $15 to User A", (done) => {
+  it("User B sends NGN 1000 to User A", (done) => {
     chai
       .request(app)
       .post(`/user/send/${userBId}/${userAId}`)
@@ -235,14 +330,38 @@ describe("/POST /GET /send money /Check balance", () => {
       });
   });
 
-  it("User A checks their balance and has 25 dollars", (done) => {
+  it("User C sends YEN 3000 to User D", (done) => {
+    chai
+      .request(app)
+      .post(`/user/send/${userCId}/${userDId}`)
+      .send(userCSend)
+      .end((err, res) => {
+        expect(res).to.have.status(200);
+        expect(res).to.be.a("object");
+        done();
+      });
+  });
+
+  it("User A checks their balance and has 3.4297203391889592 dollars", (done) => {
     chai
       .request(app)
       .get(`/user/balance/${userAId}`)
       .end((err, res) => {
         expect(res).to.have.status(200);
         expect(res).to.be.a("object");
-        expect(res.body.data.amount).to.be.equal(25);
+        expect(res.body.data.amount).to.be.equal(3.4297203391889592);
+        done();
+      });
+  });
+
+  it("User D checks their balance and has 227.40476842970676 YUAN", (done) => {
+    chai
+      .request(app)
+      .get(`/user/balance/${userDId}`)
+      .end((err, res) => {
+        expect(res).to.have.status(200);
+        expect(res).to.be.a("object");
+        expect(res.body.data.amount).to.be.equal(227.40476842970676);
         done();
       });
   });
@@ -266,7 +385,7 @@ describe("/POST /GET /send money /Check balance", () => {
       .end((err, res) => {
         expect(res).to.have.status(200);
         expect(res).to.be.a("object");
-        expect(res.body.data.amount).to.be.equal(5);
+        expect(res.body.data.amount).to.be.equal(1000);
         done();
       });
   });

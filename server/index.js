@@ -9,14 +9,12 @@ import {
   validateSendMoney,
 } from "./utils";
 
-
 const myCache = new NodeCache();
 const app = express();
 
 const port = process.env.PORT || 6000;
 
 app.use(express.json());
-
 
 app.get("/", (req, res) => {
   res.send('Welcome to peer-to-peer-payment/server"');
@@ -90,16 +88,38 @@ app.post("/user/send/:senderId/:receiverId", validateSendMoney, (req, res) => {
     });
   }
 
+  const currencyData = {
+    USD: 1,
+    NAIRA: 411.57,
+    YEN: 109.47,
+    YUAN: 6.46,
+  };
+
+  const receiverData = myCache.get(receiverId);
+
+  let convertedCurrency;
+
+  // if senders currency is USD, multiply with receivers currency
+  // e.g transfer 50 USD to YEN recipient => 50 * 109.47
+  if (senderData.currency === "USD") {
+    convertedCurrency = Number(amount) * currencyData[receiverData.currency];
+  }
+
+  // if senders currency isn't USD, divide with senders currency
+  // e.g transfer 50 YUAN to USD recipient => 50 / 6.46
+  if (senderData.currency !== "USD") {
+    convertedCurrency = Number(amount) / currencyData[senderData.currency];
+  }
+
+  const setNewReceiverAmount =
+    Number(receiverData.amount) + Number(convertedCurrency);
+
+  receiverData.amount = setNewReceiverAmount;
+
   const setNewSenderAmount =
     Number(senderData.amount) - Number(req.body.amount);
 
   senderData.amount = setNewSenderAmount;
-
-  const receiverData = myCache.get(receiverId);
-  const setNewReceiverAmount =
-    Number(receiverData.amount) + Number(req.body.amount);
-
-  receiverData.amount = setNewReceiverAmount;
 
   myCache.set(senderId.toString(), senderData);
   myCache.set(receiverId.toString(), receiverData);
@@ -136,7 +156,11 @@ app.all("*", (req, res) => {
 });
 
 app.listen(port, () => {
-  logger(`Peer-to-peer-payment project server is Running at: http://localhost:6000`);
+  logger(
+    `Peer-to-peer-payment project server is Running at: http://localhost:6000`
+  );
 });
 
 export default app;
+
+// darius.simmons05@gmail.com

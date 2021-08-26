@@ -35,17 +35,17 @@ export const validateNewUser = (req, res, next) => {
     });
   }
 
+  if (!req.body.currency) {
+    return Response(res, {
+      status: 403,
+      message: "currency is required",
+    });
+  }
+
   next();
 };
 
 export const validateDeposit = (req, res, next) => {
-  if (!req.params.userId) {
-    return Response(res, {
-      status: 403,
-      message: "UserId is required in the parameter",
-    });
-  }
-
   if (!req.body.amount) {
     return Response(res, {
       status: 403,
@@ -57,20 +57,20 @@ export const validateDeposit = (req, res, next) => {
 };
 
 export const validateSendMoney = (req, res, next) => {
-  if (!req.params.senderId) {
-    return Response(res, {
-      status: 403,
-      message:
-        "SenderId is required in the parameter as /:senderId/:receiverId",
-    });
-  }
+  // if (!req.params.senderId) {
+  //   return Response(res, {
+  //     status: 403,
+  //     message:
+  //       "SenderId is required in the parameter as /:senderId/:receiverId",
+  //   });
+  // }
 
-  if (!req.params.receiverId) {
-    return Response(res, {
-      status: 403,
-      message: "ReceiverId is required in the parameter",
-    });
-  }
+  // if (!req.params.receiverId) {
+  //   return Response(res, {
+  //     status: 403,
+  //     message: "ReceiverId is required in the parameter",
+  //   });
+  // }
 
   if (!req.body.amount) {
     return Response(res, {
